@@ -1,5 +1,11 @@
 import { Detail } from "@raycast/api";
+import { useLiveScore } from "./hooks/useLiveScore";
 
-export default function Command() {
-  return <Detail markdown="# Hello World" />;
-}
+const Command = () => {
+  const { liveScoreMarkdown, isLoading } = useLiveScore();
+  console.log(liveScoreMarkdown);
+
+  return <Detail markdown={isLoading ? "Loading..." : liveScoreMarkdown} />;
+};
+
+export default Command;

@@ -20,11 +20,14 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.35.2"
+    "@raycast/api": "^1.35.2",
+    "axios": "^0.27.2",
+    "xml2js": "^0.4.23"
   },
   "devDependencies": {
     "@types/node": "~16.10.0",
     "@types/react": "^17.0.28",
+    "@types/xml2js": "^0.4.11",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^7.32.0",
