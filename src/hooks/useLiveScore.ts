@@ -1,32 +1,26 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import xml2js from "xml2js";
+import { LiveScoresAPIResponse, LiveScoreItem } from "../interfaces/response";
 
 const LIVE_SCORES = "http://static.espncricinfo.com/rss/livescores.xml";
 
-const getSanitizedData = (data: any) => {
-  return data.rss.channel[0].item.map((item: any) => {
+export interface LiveScore {
+  title: string;
+  link: string;
+}
+
+const getSanitizedData = (data: LiveScoresAPIResponse) => {
+  return data.rss.channel[0].item.map((item: LiveScoreItem) => {
     return {
       title: item.title[0],
-      link: item.link[0],
+      link: item.guid[0],
     };
   });
 };
 
-const createMarkdownFromSanitizedData = (data: any) => {
-  const arr = data.map((item: any) => {
-    return `
-      [${item.title}](${item.link})
-    `;
-  });
-
-  return arr.join("\n");
-};
-
 export const useLiveScore = () => {
-  // const [lastPublished, setLastPublished] = useState<string>("");
-  const [liveScores, setLiveScores] = useState([]);
-  const [liveScoreMarkdown, setLiveScoreMarkdown] = useState("");
+  const [liveScores, setLiveScores] = useState<Array<LiveScore>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchLiveScores = async () => {
@@ -40,10 +34,7 @@ export const useLiveScore = () => {
         const parser = new xml2js.Parser();
         parser.parseString(data, (err, result) => {
           const liveScores = getSanitizedData(result);
-          const liveScoreMarkdown = createMarkdownFromSanitizedData(liveScores);
-
           setLiveScores(liveScores);
-          setLiveScoreMarkdown(liveScoreMarkdown);
         });
       })
       .finally(() => {
@@ -55,5 +46,5 @@ export const useLiveScore = () => {
     fetchLiveScores();
   }, []);
 
-  return { liveScores, liveScoreMarkdown, isLoading };
+  return { liveScores, isLoading };
 };
