@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
 import axios from "axios";
 import xml2js from "xml2js";
 import { LiveScoresAPIResponse, LiveScoreItem } from "../interfaces/response";
+import useSWR from "swr";
 
 const LIVE_SCORES = "http://static.espncricinfo.com/rss/livescores.xml";
 
@@ -19,32 +19,25 @@ const getSanitizedData = (data: LiveScoresAPIResponse) => {
   });
 };
 
-export const useLiveScore = () => {
-  const [liveScores, setLiveScores] = useState<Array<LiveScore>>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchLiveScores = async () => {
-    axios
-      .get(LIVE_SCORES)
-      .then((res) => {
-        const data = res.data;
-        return data;
-      })
-      .then((data) => {
-        const parser = new xml2js.Parser();
-        parser.parseString(data, (err, result) => {
-          const liveScores = getSanitizedData(result);
-          setLiveScores(liveScores);
-        });
-      })
-      .finally(() => {
-        setIsLoading(false);
+const fetchLiveScores = (url: string) => {
+  return axios
+    .get(url)
+    .then((res) => {
+      const data = res.data;
+      return data;
+    })
+    .then((data) => {
+      const parser = new xml2js.Parser();
+      let liveScores: Array<LiveScore> = [];
+      parser.parseString(data, (err, result) => {
+        liveScores = getSanitizedData(result);
       });
-  };
+      return liveScores;
+    });
+};
 
-  useEffect(() => {
-    fetchLiveScores();
-  }, []);
+export const useLiveScore = () => {
+  const { data, error } = useSWR(LIVE_SCORES, fetchLiveScores);
 
-  return { liveScores, isLoading };
+  return { liveScores: data, isLoading: !error && !data };
 };

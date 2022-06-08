@@ -3,8 +3,25 @@ import { Detail } from "@raycast/api";
 import { useMatchDetails } from "../hooks/useMatchDetails";
 
 const MatchDetails = ({ item }: { item: LiveScore }) => {
-  useMatchDetails({ matchLink: item.link });
-  return <Detail markdown={`# ${item.title}`} />;
+  const { data, isLoading } = useMatchDetails(item);
+  return (
+    <Detail
+      isLoading={isLoading}
+      markdown={
+        isLoading
+          ? ""
+          : `
+  ## ${data?.title}
+
+  **Batters**: ${data?.batters?.join(", ")}
+
+  **Bowlers**: ${data?.bowler}, *${data?.overs}*
+
+
+  `
+      }
+    />
+  );
 };
 
 const Command = ({ item }: { item: LiveScore }) => {

@@ -1,13 +1,21 @@
-import React from "react";
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { LiveScoreItem } from "../interfaces/response";
+import type { LiveScore } from "./useLiveScore";
+import useSWR from "swr";
 
-const getFormattedMatchDetails = (htmlString: string) => {
+export interface FormattedScoreData {
+  overs: string;
+  batters: string[];
+  bowler: string;
+}
+
+const getFormattedMatchDetails = (htmlString: string): FormattedScoreData => {
   const $ = cheerio.load(htmlString);
 
-  const title = $("title").text();
-  const playersAndOvers = title.slice(title.indexOf("(") + 1, title.indexOf(")")).split(", ");
+  const htmlTitleContent = $("title").text();
+  const playersAndOvers = htmlTitleContent
+    .slice(htmlTitleContent.indexOf("(") + 1, htmlTitleContent.indexOf(")"))
+    .split(", ");
 
   const overs = playersAndOvers[0];
   const batters = [playersAndOvers[1], playersAndOvers[2]];
@@ -20,17 +28,24 @@ const getFormattedMatchDetails = (htmlString: string) => {
   };
 };
 
-export const useMatchDetails = ({ matchLink }: { matchLink: LiveScoreItem["guid"][number] }) => {
-  const fetchMatchDetails = async (matchLink: string) => {
-    const htmlData = await axios.get(matchLink);
-    const formattedData = getFormattedMatchDetails(htmlData.data);
+const fetchMatchDetails = (link: LiveScore["link"]) => {
+  return axios
+    .get(link)
+    .then((res) => res.data)
+    .then((data) => {
+      const formattedData = getFormattedMatchDetails(data);
+      return formattedData;
+    });
+};
 
-    console.log(formattedData);
+export const useMatchDetails = (item: LiveScore) => {
+  const { data, error } = useSWR(item.link, fetchMatchDetails);
+
+  return {
+    isLoading: !error && !data,
+    data: {
+      ...data,
+      title: item.title,
+    },
   };
-
-  React.useEffect(() => {
-    fetchMatchDetails(matchLink);
-  }, [matchLink]);
-
-  return {};
 };

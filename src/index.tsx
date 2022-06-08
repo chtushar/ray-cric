@@ -7,7 +7,7 @@ const Command = () => {
 
   return (
     <List isLoading={isLoading}>
-      {liveScores.map((liveScore) => {
+      {liveScores?.map((liveScore) => {
         return (
           <List.Item
             key={liveScore.title}
